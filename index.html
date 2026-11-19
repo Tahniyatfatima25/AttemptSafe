@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AttemptSafe: synthetic review step demo</title>
+<style>
+:root{--bg:#f5f7fa;--sf:#fff;--ink:#1f2937;--mu:#6b7280;--ln:#e2e8f0;--ac:#2f7df6;--acl:#e8f1fe;--act:#2f6fdb;--acb:#a9c8fa;--wb:#fdf1e4;--wt:#9a5b13;--wl:#f2d3a6;--ok:#16905f;color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:#fff;color:var(--ink);font:16px/1.5 Lato,"Segoe UI",system-ui,Roboto,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.wrap{max-width:780px;margin:0 auto;padding:0 16px 48px}
+.banner{margin:0 -16px;padding:10px 16px;background:var(--acl);color:#1b4f9c;font-size:14px;border-bottom:1px solid var(--acb)}
+h1,h2{font-weight:700;margin:0;letter-spacing:-.01em}
+h1{font-size:28px;margin-top:20px}
+h2{font-size:20px;margin-bottom:14px}
+.sub{color:var(--mu);margin:4px 0 16px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:20px}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps span{padding:4px 12px;border:1px solid var(--ln);border-radius:999px;font-size:14px;color:var(--mu);background:#fff}
+.steps .on{background:var(--acl);border-color:var(--acb);color:var(--act);font-weight:700}
+.chip{font-size:14px;color:var(--mu)}
+section{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:22px}
+label{display:block;font-size:14px;font-weight:700;margin:0 0 14px}
+label small{display:block;font-weight:400;color:var(--mu);margin-top:4px}
+input,select{display:block;width:100%;margin-top:4px;padding:10px 12px;font:inherit;color:var(--ink);background:#fff;border:1px solid #d3dae3;border-radius:8px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+.hint{font-size:14px;color:var(--mu);margin:-6px 0 16px}
+ol.pages{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:10px}
+.card{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;border:1px solid var(--ln);border-radius:10px;padding:12px}
+.card p{margin:4px 0 0;font-size:14px;color:var(--mu);max-width:420px}
+.btns{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+button{font:inherit;font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid #d3dae3;background:#fff;color:var(--ink);cursor:pointer}
+button.pri{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:700;border-radius:10px;padding:10px 18px}
+button.danger{color:var(--wt);border-color:var(--wl);background:var(--wb)}
+button.link{border:0;background:none;color:var(--act);padding:0;text-decoration:underline}
+button:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:0 0 16px}
+dt{color:var(--mu)}dd{margin:0}
+.tag{background:#cff7fa;color:#0b6b75;padding:1px 8px;border-radius:6px;font-size:14px;font-weight:700}
+.ck{list-style:none;padding:0;margin:0 0 14px;display:grid;gap:4px}
+.ck .y{color:var(--ok)}.ck .n{color:var(--wt);font-weight:700}
+.note{background:var(--wb);color:var(--wt);border:1px solid var(--wl);border-radius:10px;padding:10px 12px;margin:0 0 10px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+.read{white-space:pre-wrap;border:1px solid var(--ln);border-radius:10px;padding:12px;background:var(--bg);margin:6px 0 16px;max-height:260px;overflow:auto}
+.cb{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:16px}
+.cb input{width:20px;height:20px;margin:2px 0 0}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center}
+.msg{margin:14px 0 0;color:var(--ok);font-weight:700;min-height:1.4em}
+.ok{color:var(--ok);font-weight:700}
+.fine{font-size:13px;color:var(--mu);margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<p class="banner" role="note">Independent synthetic demo. Not connected to SuperKalam. Fictional pages, no real evaluation, no real allowance.</p>
+<h1>AttemptSafe</h1>
+<p class="sub">Check your pages, question and paper before you submit.</p>
+<div class="bar"><div class="steps" id="steps"></div><div class="chip" id="chip"></div></div>
+<main id="app"></main>
+<p class="fine">Demo rule, not SuperKalam policy: one of three fictional units is recorded when a simulated submission is accepted. Reading text is a fixed fixture, not live OCR. <button class="link" data-a="reset">Reset demo</button></p>
+</div>
+<script>
+const Q="Discuss how municipal bodies can improve urban water supply.";
+const P=[
+{id:"p1",slot:1,label:"Page 1",text:"Municipal bodies run water supply in cities, so their performance decides daily access to water.\nMeasures\n(i) Fix leaking pipes to reduce losses.\n(ii) Meter connections and price water fairly.\n(iii) Recharge groundwater with rainwater harvesting."},
+{id:"p2",slot:2,label:"Page 2",text:"Challenges\n(i) Funds depend on state grants.\n(ii) Staff and technical capacity are limited.\nConclusion\nCities need steady funds and trained staff to deliver reliable water, with citizens able to question service gaps."},
+{id:"p3",slot:2,label:"Page 2 (retake)",text:"Challenges\n(i) Funds depend on state grants.\n(ii) Staff and technical capacity are limited.\n(iii) Old networks lose water.\nConclusion\nSteady funds, trained staff and public reporting of service gaps would make urban water supply dependable."}
+];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const blank=()=>({id:"A"+Date.now(),v:1,pages:["p1"],expected:"2",paper:"GS 2",q:"",ok:false});
+const fresh=()=>({view:"draft",d:blank(),rc:[],used:0,msg:"",disc:false});
+let S=fresh();
+try{const x=localStorage.getItem("attemptsafe-demo");if(x)S=JSON.parse(x)}catch(e){}
+const save=()=>{try{localStorage.setItem("attemptsafe-demo",JSON.stringify(S))}catch(e){}};
+const touch=()=>{S.d.v++;S.d.ok=false;S.msg=""};
+const pg=id=>P.find(p=>p.id===id);
+const txt=ids=>ids.map(i=>pg(i).text).join("\n\n");
+const words=t=>t.split(/\s+/).filter(w=>w&&!/^\([ivx]+\)$/i.test(w)).length;
+const toks=t=>new Set(t.toLowerCase().match(/[a-z]{4,}/g)||[]);
+function notes(){
+const d=S.d,r=txt(d.pages),n=[];
+if(d.expected&&+d.expected!==d.pages.length)n.push({t:"You expected "+d.expected+" page"+(+d.expected===1?"":"s")+" and supplied "+d.pages.length+". Add the missing page, or change the expected count if this is complete.",a:"files",l:"Back to files"});
+if(!d.q.trim())n.push({t:"No question entered.",a:"usesug",l:"Use suggested question"});
+else{const a=toks(d.q),b=toks(r);if(![...a].some(x=>b.has(x)))n.push({t:"This question does not seem to match the answer text.",a:"usesug",l:"Use suggested question"})}
+if(d.paper!=="GS 2")n.push({t:d.paper+" is selected, but this answer reads like a GS 2 topic (demo rule).",a:"fixpaper",l:"Switch to GS 2"});
+return n}
+function draft(){
+const d=S.d,free=P.filter(p=>!d.pages.includes(p.id));
+return `<section><h2>Your files</h2>
+<div class="row"><label>Paper<small>The paper this answer belongs to.</small><select data-f="paper">${["GS 1","GS 2","GS 3","GS 4","Essay","Optional"].map(x=>`<option${x===d.paper?" selected":""}>${x}</option>`).join("")}</select></label>
+<label>Expected pages (optional)<small>The review step warns you if the count differs.</small><input data-f="expected" type="number" min="1" max="9" value="${esc(d.expected)}"></label></div>
+<label>Question<input data-f="q" type="text" value="${esc(d.q)}" placeholder="Type the question"></label>
+<p class="hint">Suggested: ${esc(Q)} <button class="link" data-a="usesug">Use it</button></p>
+<ol class="pages">${d.pages.map((id,i)=>{const p=pg(id),alt=P.some(x=>x.slot===p.slot&&!d.pages.includes(x.id));
+return `<li class="card"><div><strong>${esc(p.label)}</strong><p>${esc(p.text.slice(0,80))}…</p></div><div class="btns">
+<button data-a="up" data-id="${id}"${i?"":" disabled"}>Move up</button>
+<button data-a="down" data-id="${id}"${i<d.pages.length-1?"":" disabled"}>Move down</button>
+<button data-a="replace" data-id="${id}"${alt?"":" disabled"}>Replace</button>
+<button data-a="remove" data-id="${id}">Remove</button></div></li>`}).join("")||"<li>No pages yet. Add a page below.</li>"}</ol>
+<div class="btns">${free.map(p=>`<button data-a="add" data-id="${p.id}">Add ${esc(p.label)}</button>`).join("")}</div>
+<div class="actions"><button class="pri" data-a="review"${d.pages.length?"":" disabled"}>Continue to review</button></div>
+<p class="msg" role="status">${esc(S.msg)}</p></section>`}
+function review(){
+const d=S.d,n=notes(),r=txt(d.pages),left=3-S.used,a=toks(d.q),b=toks(r),qok=!!d.q.trim()&&[...a].some(x=>b.has(x)),ck=[["Paper fits the answer",d.paper==="GS 2"],["Question matches the answer",qok],["Expected pages are added",!d.expected||+d.expected===d.pages.length]];
+return `<section><h2>Review before you submit</h2>
+<ul class="ck" aria-label="Check before submit">${ck.map(([t,o])=>`<li class="${o?"y":"n"}"><span aria-hidden="true">${o?"✓":"!"}</span> ${t}${o?"":" (needs a look)"}</li>`).join("")}</ul>
+<dl><dt>Paper</dt><dd><span class="tag">${esc(d.paper)}</span></dd><dt>Question</dt><dd>${esc(d.q)||"(none)"}</dd><dt>Pages</dt><dd>${d.pages.length} received${d.expected?", "+esc(d.expected)+" expected":""}</dd><dt>Word count</dt><dd>${words(r)}</dd><dt>Draft version</dt><dd>${d.v}</dd></dl>
+${n.map(x=>`<div class="note"><span>${esc(x.t)}</span><button data-a="${x.a}">${x.l}</button></div>`).join("")}
+<div class="read" tabindex="0" aria-label="Reading, read only">${esc(r)||"No pages."}</div>
+<label class="cb"><input type="checkbox" data-a="ok"${d.ok?" checked":""}> <span>These are all the pages I intend to submit, in this order.</span></label>
+<div class="actions"><button data-a="files">Back to files (draft saved)</button>
+${S.disc?`<span>This permanently removes the current draft.</span><button class="danger" data-a="discardyes">Yes, discard draft</button><button data-a="discardno">Keep draft</button>`:`<button class="danger" data-a="discard">Discard draft</button>`}
+<button class="pri" data-a="submit"${d.ok&&left>0&&d.pages.length?"":" disabled"}>Submit for evaluation</button></div>
+<p class="hint">Back to files keeps your draft. Any change to the files invalidates this confirmation.${left<1?" Demo allowance used up. Reset the demo.":""}</p>
+<p class="msg" role="status">${esc(S.msg)}</p></section>`}
+function receipt(){
+const r=S.rc[S.rc.length-1];
+if(!r)return `<section><h2>No submission yet</h2><div class="actions"><button data-a="files">Back to files</button></div></section>`;
+return `<section><h2>Submission receipt</h2>
+<dl><dt>Receipt</dt><dd class="ok">${esc(r.id)}</dd><dt>Status</dt><dd>Accepted (simulated)</dd><dt>Version submitted</dt><dd>${r.v}</dd><dt>Paper</dt><dd>${esc(r.paper)}</dd><dt>Question</dt><dd>${esc(r.q)||"(none)"}</dd><dt>Pages</dt><dd>${r.n}</dd><dt>Word count</dt><dd>${r.w}</dd><dt>Time</dt><dd>${esc(r.t)}</dd><dt>Demo allowance</dt><dd>${S.used} of 3 recorded</dd></dl>
+<div class="read" tabindex="0" aria-label="Submitted snapshot, read only">${esc(r.text)}</div>
+<p class="hint">This snapshot cannot be changed. A correction is a new attempt.</p>
+<div class="actions"><button data-a="status">Check status</button><button data-a="submit">Submit same version again</button><button class="pri" data-a="newattempt">Start a new attempt</button></div>
+<p class="msg" role="status">${esc(S.msg)}</p></section>`}
+function render(){
+$("#app").innerHTML=S.view==="draft"?draft():S.view==="review"?review():receipt();
+const names=["1 Files","2 Review","3 Receipt"],on=["draft","review","receipt"].indexOf(S.view);
+$("#steps").innerHTML=names.map((x,i)=>`<span class="${i===on?"on":""}">${x}</span>`).join("");
+$("#chip").textContent="Demo allowance: "+(3-S.used)+" of 3 left";
+save()}
+function submit(){
+const d=S.d,key=d.id+":"+d.v;
+const ex=S.rc.find(r=>r.key===key);
+if(ex){S.rc=S.rc.filter(r=>r!==ex).concat(ex);S.msg="Same version already submitted. Showing the existing receipt. No second unit recorded.";S.view="receipt";return}
+if(!d.ok||S.used>=3)return;
+const t=txt(d.pages);S.used++;
+S.rc.push({key,id:"DEMO-"+String(S.rc.length+1).padStart(3,"0"),v:d.v,paper:d.paper,q:d.q,n:d.pages.length,w:words(t),text:t,t:new Date().toLocaleString()});
+S.msg="Accepted. One demo unit recorded.";S.view="receipt"}
+document.addEventListener("change",e=>{
+const t=e.target,f=t.dataset.f;
+if(f){S.d[f]=t.value;touch();save();return}
+if(t.dataset.a==="ok"){S.d.ok=t.checked;S.msg="";render()}});
+document.addEventListener("click",e=>{
+const b=e.target.closest("button[data-a]");if(!b)return;
+const a=b.dataset.a,id=b.dataset.id,p=S.d.pages,i=p.indexOf(id);
+if(a==="up"&&i>0){[p[i-1],p[i]]=[p[i],p[i-1]];touch()}
+else if(a==="down"&&i<p.length-1){[p[i+1],p[i]]=[p[i],p[i+1]];touch()}
+else if(a==="remove"){p.splice(i,1);touch()}
+else if(a==="add"){p.push(id);touch()}
+else if(a==="replace"){const s=pg(id).slot,alt=P.find(x=>x.slot===s&&!p.includes(x.id));if(alt){p[i]=alt.id;touch()}}
+else if(a==="usesug"){S.d.q=Q;touch()}
+else if(a==="fixpaper"){S.d.paper="GS 2";touch()}
+else if(a==="review"){S.view="review";S.msg=""}
+else if(a==="files"){S.msg=S.view==="review"?"Draft saved. Your files are unchanged.":"";S.view="draft";S.disc=false}
+else if(a==="discard"){S.disc=true}
+else if(a==="discardno"){S.disc=false}
+else if(a==="discardyes"){S.d=blank();S.disc=false;S.view="draft";S.msg="Draft discarded."}
+else if(a==="submit"){submit()}
+else if(a==="status"){const r=S.rc[S.rc.length-1];S.msg="Status: accepted. Receipt "+r.id+". "+S.used+" of 3 demo units recorded."}
+else if(a==="newattempt"){S.d=blank();S.view="draft";S.msg=""}
+else if(a==="reset"){S=fresh()}
+render()});
+render();
+</script>
+</body>
+</html>
