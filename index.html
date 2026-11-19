@@ -104,7 +104,7 @@ return `<li class="card"><div><strong>${esc(p.label)}</strong><p>${esc(p.text.sl
 <div class="actions"><button class="pri" data-a="review"${d.pages.length?"":" disabled"}>Continue to review</button></div>
 <p class="msg" role="status">${esc(S.msg)}</p></section>`}
 function review(){
-const d=S.d,n=notes(),r=txt(d.pages),left=3-S.used,a=toks(d.q),b=toks(r),qok=!!d.q.trim()&&[...a].some(x=>b.has(x)),ck=[["Paper fits the answer",d.paper==="GS 2"],["Question matches the answer",qok],["Expected pages are added",!d.expected||+d.expected===d.pages.length]];
+const d=S.d,n=notes(),r=txt(d.pages),left=3-S.used,a=toks(d.q),b=toks(r),qok=!!d.q.trim()&&[...a].some(x=>b.has(x)),ck=[["Paper fits the answer",d.paper==="GS 2"],["Question matches the answer",qok],["Page count matches what you expected",!d.expected||+d.expected===d.pages.length]];
 return `<section><h2>Review before you submit</h2>
 <ul class="ck" aria-label="Check before submit">${ck.map(([t,o])=>`<li class="${o?"y":"n"}"><span aria-hidden="true">${o?"✓":"!"}</span> ${t}${o?"":" (needs a look)"}</li>`).join("")}</ul>
 <dl><dt>Paper</dt><dd><span class="tag">${esc(d.paper)}</span></dd><dt>Question</dt><dd>${esc(d.q)||"(none)"}</dd><dt>Pages</dt><dd>${d.pages.length} received${d.expected?", "+esc(d.expected)+" expected":""}</dd><dt>Word count</dt><dd>${words(r)}</dd><dt>Draft version</dt><dd>${d.v}</dd></dl>
